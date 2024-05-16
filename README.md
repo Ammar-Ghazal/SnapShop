@@ -1,2 +1,7 @@
 # ece452-project
-Mobile App for CS 446/CS 646/ECE 452
+Shahryar Ahmed
+Ammar Ghazal
+Ben Lu
+Kevin Naranjo Paredes
+David Said
+Joell Praveenth Sebastiampillai
