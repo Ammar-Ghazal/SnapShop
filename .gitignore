@@ -6,4 +6,4 @@ gradlew
 gradlew.bat
 local.properties
 settings.gradle.kts
-build.gradle.kts
+/build.gradle.kts
