@@ -40,6 +40,8 @@ android {
 
 dependencies {
 
+    implementation(libs.generativeai)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
