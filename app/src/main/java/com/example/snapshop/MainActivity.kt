@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.View
 import android.widget.RelativeLayout
@@ -33,7 +34,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
+import org.jsoup.Jsoup
 import java.io.File
+import java.net.URL
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -121,7 +124,6 @@ class MainActivity : AppCompatActivity() {
         val fileName = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMMdd_HHmmss")) + ".jpg"
         val file = File(externalMediaDirs.first(), fileName)
         val options = ImageCapture.OutputFileOptions.Builder(file).build()
-        Toast.makeText(this, file.absolutePath, Toast.LENGTH_LONG).show()
 
         imageCapture.takePicture(options, ContextCompat.getMainExecutor(this), object : ImageCapture.OnImageSavedCallback {
             override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
@@ -158,6 +160,33 @@ class MainActivity : AppCompatActivity() {
                 // Display the response using a Toast message
                 withContext(Dispatchers.Main) {
                     Toast.makeText(this@MainActivity, response.text, Toast.LENGTH_LONG).show()
+                    // Ideally update this to pass in the response.text of gemini when it gets optimized
+                    search("basketball")
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@MainActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
+    private fun search(item: String) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = Jsoup.connect("http://www.google.com/search?q=buy+$item").get()
+                withContext(Dispatchers.Main) {
+                    val results = response.getElementsByAttribute("href")
+                    val validUrls = mutableListOf<String>()
+                    for (i in results) {
+                        val url = i.attr("href")
+                        // filter out repeats from the DOM and random hrefs from Google
+                        if (url.contains("https://") && !validUrls.contains(url) && !url.contains("google") && !url.contains("gstatic")) {
+                            validUrls.add(url)
+                            Log.i("com.example.snapshop", url)
+                        }
+                    }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
