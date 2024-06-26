@@ -10,6 +10,7 @@ import android.view.Menu
 import android.view.View
 import android.widget.RelativeLayout
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import com.google.android.material.navigation.NavigationView
 import androidx.navigation.findNavController
@@ -28,6 +29,9 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModel
+import com.example.snapshop.ui.home.HomeFragment
+import com.example.snapshop.ui.home.HomeViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -36,7 +40,6 @@ import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
 import org.jsoup.Jsoup
 import java.io.File
-import java.net.URL
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -153,15 +156,14 @@ class MainActivity : AppCompatActivity() {
             try {
                 val inputContent = content {
                     image(bitmap)
-                    text("What is this image?")
+                    text("What is the name of this product?")
                 }
                 val response = generativeModel.generateContent(inputContent)
 
                 // Display the response using a Toast message
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@MainActivity, response.text, Toast.LENGTH_LONG).show()
                     // Ideally update this to pass in the response.text of gemini when it gets optimized
-                    search("basketball")
+                    search(response.text.toString())
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -175,7 +177,7 @@ class MainActivity : AppCompatActivity() {
     private fun search(item: String) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = Jsoup.connect("http://www.google.com/search?q=buy+$item").get()
+                val response = Jsoup.connect("http://www.google.com/search?q=buy+Arduino+Nano").get()
                 withContext(Dispatchers.Main) {
                     val results = response.getElementsByAttribute("href")
                     val validUrls = mutableListOf<String>()
@@ -187,6 +189,8 @@ class MainActivity : AppCompatActivity() {
                             Log.i("com.example.snapshop", url)
                         }
                     }
+                    val viewModel: HomeViewModel by viewModels()
+                    viewModel.setHomeText(item.replace("+", " "), validUrls)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
