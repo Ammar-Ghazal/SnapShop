@@ -3,13 +3,16 @@ package com.example.snapshop
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import android.view.Menu
 import android.view.View
 import android.widget.RelativeLayout
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import com.google.android.material.navigation.NavigationView
@@ -29,8 +32,6 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.ViewModel
-import com.example.snapshop.ui.home.HomeFragment
 import com.example.snapshop.ui.home.HomeViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -60,7 +61,15 @@ class MainActivity : AppCompatActivity() {
 
         setSupportActionBar(binding.appBarMain.toolbar)
 
+        val uploadImage = registerForActivityResult(ActivityResultContracts.GetContent()) {
+                uri ->
+            if (uri != null) {
+                selectImage(uri)
+            }
+        }
+
         binding.appBarMain.fab.setOnClickListener { openCamera() }
+        binding.appBarMain.uploadButton.setOnClickListener { uploadImage.launch("image/*") }
         binding.appBarMain.cameraButton.setOnClickListener { takePicture() }
         val drawerLayout: DrawerLayout = binding.drawerLayout
         val navView: NavigationView = binding.navView
@@ -146,6 +155,12 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
+    private fun selectImage(uri: Uri) {
+        Log.i("com.example.snapshop", uri.toString())
+        val bitmap = MediaStore.Images.Media.getBitmap(this.contentResolver, uri)
+        callGeminiAPI(bitmap)
+    }
+
     private fun callGeminiAPI(bitmap: Bitmap) {
         val generativeModel = GenerativeModel(
             modelName = "gemini-1.5-flash",
@@ -156,14 +171,14 @@ class MainActivity : AppCompatActivity() {
             try {
                 val inputContent = content {
                     image(bitmap)
-                    text("What is the name of this product?")
+                    text("What is the name of the product in this image? In your reply only state the name and nothing else")
                 }
                 val response = generativeModel.generateContent(inputContent)
 
                 // Display the response using a Toast message
                 withContext(Dispatchers.Main) {
-                    // Ideally update this to pass in the response.text of gemini when it gets optimized
                     search(response.text.toString())
+                    Log.i("com.example.snapshop", response.text.toString())
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -177,7 +192,8 @@ class MainActivity : AppCompatActivity() {
     private fun search(item: String) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = Jsoup.connect("http://www.google.com/search?q=buy+Arduino+Nano").get()
+                val searchString = "http://www.google.com/search?q=buy+" + item.replace(" ", "+")
+                val response = Jsoup.connect(searchString).get()
                 withContext(Dispatchers.Main) {
                     val results = response.getElementsByAttribute("href")
                     val validUrls = mutableListOf<String>()
