@@ -28,4 +28,10 @@
         android:name="com.example.snapshop.ui.wishlist.WishListFragment"
         android:label="@string/menu_wishlist"
         tools:layout="@layout/fragment_wishlist" />
+
+    <fragment
+        android:id="@+id/nav_recommendation"
+        android:name="com.example.snapshop.ui.recommendations.RecommendationsFragment"
+        android:label="@string/menu_recommendations"
+        tools:layout="@layout/fragment_recommendations" />
 </navigation>
