@@ -25,6 +25,7 @@ class WishListAdapter(private var wishlistItems: List<WishListItem>, private val
         holder.btnDelete.setOnClickListener {
             onDeleteClick(item)
         }
+
         Log.i("com.example.snapshop.ui.wishlist", item.title + " ")
     }
 

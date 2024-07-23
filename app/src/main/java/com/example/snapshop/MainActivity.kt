@@ -38,6 +38,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.ViewModelProvider
 import com.example.snapshop.models.WishListItem
 import com.example.snapshop.ui.wishlist.WishListViewModel
+import com.example.snapshop.util.SharedPreferencesManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -61,6 +62,7 @@ class MainActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        SharedPreferencesManager.init(this)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -233,7 +235,7 @@ class MainActivity : AppCompatActivity() {
                     val layoutParams = wishlistButton.layoutParams as ConstraintLayout.LayoutParams
                     layoutParams.width = ConstraintLayout.LayoutParams.WRAP_CONTENT
                     layoutParams.height = ConstraintLayout.LayoutParams.WRAP_CONTENT
-                    layoutParams.leftToLeft = ConstraintLayout.LayoutParams.PARENT_ID
+                    layoutParams.rightToRight = ConstraintLayout.LayoutParams.PARENT_ID
                     layoutParams.topToTop = ConstraintLayout.LayoutParams.PARENT_ID
                     wishlistButton.layoutParams = layoutParams
                     viewModel.setHomeText(item.replace("+", " "), validUrls)
