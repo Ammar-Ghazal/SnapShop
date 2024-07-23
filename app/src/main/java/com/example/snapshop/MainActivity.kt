@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.View
+import android.widget.Button
 import android.widget.RelativeLayout
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -27,11 +28,13 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.ViewModel
-import com.example.snapshop.ui.home.HomeFragment
+import androidx.lifecycle.ViewModelProvider
 import com.example.snapshop.ui.home.HomeViewModel
+import com.example.snapshop.models.WishListItem
+import com.example.snapshop.ui.wishlist.WishListViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -42,6 +45,7 @@ import org.jsoup.Jsoup
 import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.UUID
 
 class MainActivity : AppCompatActivity() {
 
@@ -67,7 +71,7 @@ class MainActivity : AppCompatActivity() {
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.nav_home, R.id.nav_gallery, R.id.nav_slideshow
+                R.id.nav_home, R.id.nav_gallery, R.id.nav_slideshow, R.id.nav_wishlist
             ), drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
@@ -163,7 +167,7 @@ class MainActivity : AppCompatActivity() {
                 // Display the response using a Toast message
                 withContext(Dispatchers.Main) {
                     // Ideally update this to pass in the response.text of gemini when it gets optimized
-                    search(response.text.toString())
+                    search(response.text.toString(), bitmap)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -174,7 +178,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun search(item: String) {
+    private fun search(item: String, image: Bitmap) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val response = Jsoup.connect("http://www.google.com/search?q=buy+Arduino+Nano").get()
@@ -189,7 +193,30 @@ class MainActivity : AppCompatActivity() {
                             Log.i("com.example.snapshop", url)
                         }
                     }
+
+                    val parentLayout = findViewById<ConstraintLayout>(R.id.parent_layout)
                     val viewModel: HomeViewModel by viewModels()
+                    val wishlistButton = Button(this@MainActivity).apply {
+                        text = "Add To WishList"
+                        id = View.generateViewId()
+                        setOnClickListener {
+                            addToWishList(
+                                item.replace("+", " "),
+                                image,
+                                "",
+                                validUrls
+                            )
+                        }
+                    }
+
+                    // Add button to layout and format layout
+                    parentLayout.addView(wishlistButton)
+                    val layoutParams = wishlistButton.layoutParams as ConstraintLayout.LayoutParams
+                    layoutParams.width = ConstraintLayout.LayoutParams.WRAP_CONTENT
+                    layoutParams.height = ConstraintLayout.LayoutParams.WRAP_CONTENT
+                    layoutParams.leftToLeft = ConstraintLayout.LayoutParams.PARENT_ID
+                    layoutParams.topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+                    wishlistButton.layoutParams = layoutParams
                     viewModel.setHomeText(item.replace("+", " "), validUrls)
                 }
             } catch (e: Exception) {
@@ -199,5 +226,18 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun addToWishList(title: String?, image: Bitmap, description: String?, buyLinks: MutableList<String>) {
+        Toast.makeText(this@MainActivity, "Added item to wishlist", Toast.LENGTH_LONG).show()
+        val wishListViewModel = ViewModelProvider(this).get(WishListViewModel::class.java)
+
+        wishListViewModel.addToWishList(WishListItem(
+            UUID.randomUUID().toString(),
+            title,
+            image,
+            description,
+            buyLinks
+        ))
     }
 }
