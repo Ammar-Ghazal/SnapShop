@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="?android:attr/windowBackground">
 
     <TextView
         android:id="@+id/tvWishListTitle"
@@ -12,12 +13,12 @@
         android:text="Wish List"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:layout_gravity="center"/>
+        android:layout_gravity="center"
+        android:textColor="?attr/colorPrimary"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvWishList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="16dp"/>
-
 </LinearLayout>
